@@ -37,9 +37,14 @@ int main (int argc, char *argv[])
 	  PyObject *get_area_method;
 	  get_area_method = PyObject_GetAttrString(pv, "get_area");
 	  if (get_area_method != nullptr) {
-	      pv = PyObject_CallObject(get_area_method, PyTuple_New(0));
-	      printf("Result of call: %ld\n", PyLong_AsLong(pv));
+	      PyObject *res_v = PyObject_CallObject(get_area_method, PyTuple_New(0));
+	      printf("Result of call to get_area is : %ld\n", PyLong_AsLong(res_v));
+	      Py_DECREF(res_v);
 	  }
+
+	  struct c_PyRect * c_pv = reinterpret_cast<struct c_PyRect *>(pv);
+	  int res = cythonfunc2(c_pv);
+	  std::cout << "Result of cythonfunc2 is " << res << std::endl;
       } else {
 	  Py_DECREF(pargs);
 	  Py_DECREF(py_rect);
