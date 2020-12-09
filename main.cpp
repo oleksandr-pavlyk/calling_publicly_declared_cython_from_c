@@ -17,6 +17,43 @@ int main (int argc, char *argv[])
   result = cythonfunc(c_rect);
   std::cout<<result<<"\n";
 
+  // do same through Python
+  PyObject *py_rect = PyObject_GetAttrString(rect_module, "PyRectangle");
+  
+  PyObject *pargs = PyTuple_New(4);
+  {
+      PyObject * pv;
+      pv = PyLong_FromLong(0);
+      PyTuple_SetItem(pargs, 0, pv);
+      pv = PyLong_FromLong(0);
+      PyTuple_SetItem(pargs, 1, pv);
+      pv = PyLong_FromLong(2);
+      PyTuple_SetItem(pargs, 2, pv);
+      pv = PyLong_FromLong(1);
+      PyTuple_SetItem(pargs, 3, pv);
+
+      pv = PyObject_CallObject(py_rect, pargs);
+      if (pv != nullptr && (PyObject_TypeCheck(pv, &c_PyRect_t))) {
+	  PyObject *get_area_method;
+	  get_area_method = PyObject_GetAttrString(pv, "get_area");
+	  if (get_area_method != nullptr) {
+	      pv = PyObject_CallObject(get_area_method, PyTuple_New(0));
+	      printf("Result of call: %ld\n", PyLong_AsLong(pv));
+	  }
+      } else {
+	  Py_DECREF(pargs);
+	  Py_DECREF(py_rect);
+	  Py_DECREF(rect_module);
+	  PyErr_Print();
+	  std::cerr <<  "Call failed!" << std::endl;
+	  return 1;
+      }
+  }
+
+  Py_DECREF(pargs);
+
+  Py_XDECREF(py_rect);
+  Py_XDECREF(rect_module);
   Py_Finalize();
 
   return 0;
